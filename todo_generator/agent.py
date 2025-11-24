@@ -74,7 +74,7 @@ INSTRUCTION = """\
 """
 
 
-root_agent = Agent(
+todo_generator_agent = Agent(
     model='gemini-2.5-flash',
     name='todo_grounding_agent',
     description='Google Searchで得た最新情報を踏まえてTODOを細分化するエージェント。',
