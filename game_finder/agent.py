@@ -107,7 +107,7 @@ INSTRUCTION = """\
 """
 
 
-game_finder_agent = Agent(
+root_agent = Agent(
     model='gemini-2.5-flash',
     name='game_finder',
     description='信頼できるサイトを横断し、ユーザーの嗜好に合わせて最新ゲームを推薦するエージェント。',

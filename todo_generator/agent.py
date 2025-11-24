@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Optional
+
 from google.adk.agents.llm_agent import Agent
 from google.adk.tools import google_search
 from pydantic import BaseModel, Field
@@ -14,10 +17,10 @@ class Todo(BaseModel):
             '専門用語は簡潔に定義し、引用した情報源を明記する。'
         ),
     )
-    due_date: str = Field(
-        ...,
+    due_date: Optional[datetime] = Field(
+        None,
         description=(
-            "予定締切。ISO 8601形式（例: '2025-12-31'）または'TBD'を使用する。"
+            "予定締切。締切が未定の場合はNoneを使用する。"
         ),
     )
     priority: int = Field(
@@ -74,7 +77,7 @@ INSTRUCTION = """\
 """
 
 
-todo_generator_agent = Agent(
+root_agent = Agent(
     model='gemini-2.5-flash',
     name='todo_grounding_agent',
     description='Google Searchで得た最新情報を踏まえてTODOを細分化するエージェント。',

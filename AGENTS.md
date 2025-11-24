@@ -1,35 +1,31 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
-- `main.py`: minimal entry that prints a greeting; useful as a smoke check.
-- `todo_generator/agent.py`: defines the pydantic `Todo` model and `root_agent`; update prompts or tools here.
-- `todo_generator/.env`: place API keys or provider settings locally; keep secrets out of git.
-- `pyproject.toml` and `uv.lock`: Python 3.12 toolchain and locked dependencies via `uv`.
-- `.python-version`: pins the interpreter for contributors.
+## Project Structure & Modules
 
-## Build, Test, and Development Commands
-- `uv sync`: install or refresh the locked environment (creates `.venv`).
-- `uv run python main.py`: run the hello-world entry and verify the env is sane.
-- `uv run python -i todo_generator/agent.py`: load `root_agent` for interactive calls.
-- `uv run python`: open a REPL with project deps available.
-- `uv run pytest`: preferred test runner once tests are added.
+- `main.py` is a simple greeting entry point for smoke-testing the environment.
+- `game_finder/agent.py`: `CurrentTimeInstructionTool` (BaseTool override) injects the current timestamp into prompts; `game_finder_agent` uses `google_search`; instructions expect Japanese Markdown sections that include a '最終更新' line.
+- `todo_generator/agent.py`: Pydantic models `Todo` and `TodoPlan` plus `todo_generator_agent`; the instruction mandates at least one `google_search` call and returns Japanese JSON matching the schema with citations.
+- `.env` files in agent folders are reserved for secrets (API keys, etc.); keep them local and git-ignored. Tooling lives in `pyproject.toml`, `uv.lock`, and `.python-version` (Python 3.12).
+
+## Build, Test, Development Commands
+
+- `uv sync` - install locked dependencies into `.venv`.
+- `uv run python main.py` - quick sanity check.
+- `uv run python -i game_finder/agent.py` (or `todo_generator/agent.py`) - drop into a REPL with the module loaded; `game_finder_agent` / `todo_generator_agent` are ready for manual calls.
+- No baked-in tests yet; if you add tooling, prefer `uv run <cmd>` (e.g., `uv run pytest`) to reuse the environment.
 
 ## Coding Style & Naming Conventions
-- Follow PEP 8 with 4-space indents; prefer type hints for public functions.
-- Imports grouped stdlib -> third-party -> local; keep existing single-quote style.
-- Names: PascalCase for models/classes (`Todo`), snake_case for functions/vars, agents stay `root_agent` unless multiple are present.
-- Keep functions small and side-effect aware; add brief docstrings only when behavior is non-obvious.
+
+- Follow PEP 8 with type hints; order imports stdlib -> third-party; prefer single quotes.
+- Use PascalCase for classes/models and snake_case for functions/variables; exported agents keep the `_agent` suffix and uppercase `INSTRUCTION` constants.
+- Keep system prompts concise and Japanese to match existing behavior; preserve markdown/JSON output templates.
 
 ## Testing Guidelines
-- Framework: pytest (not yet present). Place suites under `tests/` with files named `test_*.py`.
-- Mock external calls and LLM clients; avoid network-required tests. Include fast smoke coverage for `main.py` output and agent configuration.
-- Run `uv run pytest` before publishing changes; aim to cover new logic you introduce.
+
+- Add tests under `tests/` using `test_*.py`; target pytest for new suites.
+- Mock `google_adk` interactions or stub networked tools; validate tool wiring (e.g., required `google_search` calls, timestamp injection) and schema outputs.
 
 ## Commit & Pull Request Guidelines
-- No commit history yet; use Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`) to keep history readable.
-- PRs should explain what/why, list manual checks (e.g., `uv run python main.py`, `uv run pytest`), and link issues when relevant.
-- Include screenshots or sample output when it clarifies behavior changes.
 
-## Security & Configuration Tips
-- Keep secrets in env vars or `todo_generator/.env`; never commit them.
-- Regenerate the lockfile with `uv lock` only when dependencies change; follow with `uv sync` to refresh the environment.
+- Commit history uses short, imperative messages (e.g., "Add game_finder agent and current time instruction tool"); follow suit.
+- PRs should summarize scope, list key commands run, link issues, and include sample agent inputs/outputs or screenshots. Note any env vars or secrets required to reproduce.
