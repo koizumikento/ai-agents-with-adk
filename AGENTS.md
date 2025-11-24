@@ -1,31 +1,33 @@
 # Repository Guidelines
 
-## Project Structure & Modules
+## Project Structure & Module Organization
+- `main.py` prints "Hello from ai-agents!" for a quick sanity check.
+- Agents: `finance_agent/` (coordinator plus `jp_agent.py`, `us_agent.py`, `tools.py`), `game_finder/agent.py`, and `todo_generator/agent.py` with `Todo`/`TodoPlan` schemas. Each folder keeps its own `.env` for per-agent secrets; leave them untracked.
+- Tooling: `pyproject.toml` + `uv.lock` (Python 3.12, google-adk; dev `ruff`/`pytest`), `.python-version`, `.gitignore`, and lint cache `.ruff_cache/`.
 
-- `main.py` is a simple greeting entry point for smoke-testing the environment.
-- `game_finder/agent.py`: `CurrentTimeInstructionTool` (BaseTool override) injects the current timestamp into prompts; `game_finder_agent` uses `google_search`; instructions expect Japanese Markdown sections that include a '最終更新' line.
-- `todo_generator/agent.py`: Pydantic models `Todo` and `TodoPlan` plus `todo_generator_agent`; the instruction mandates at least one `google_search` call and returns Japanese JSON matching the schema with citations.
-- `.env` files in agent folders are reserved for secrets (API keys, etc.); keep them local and git-ignored. Tooling lives in `pyproject.toml`, `uv.lock`, and `.python-version` (Python 3.12).
-
-## Build, Test, Development Commands
-
-- `uv sync` - install locked dependencies into `.venv`.
-- `uv run python main.py` - quick sanity check.
-- `uv run python -i game_finder/agent.py` (or `todo_generator/agent.py`) - drop into a REPL with the module loaded; `game_finder_agent` / `todo_generator_agent` are ready for manual calls.
-- No baked-in tests yet; if you add tooling, prefer `uv run <cmd>` (e.g., `uv run pytest`) to reuse the environment.
+## Build, Test, and Development Commands
+- `uv sync` - install dependencies into `.venv` from `pyproject.toml`/`uv.lock`.
+- `uv run python main.py` - smoke-check the environment.
+- `uv run python -i finance_agent/agent.py` (or `game_finder/agent.py`, `todo_generator/agent.py`) - load `root_agent` for quick manual runs.
+- `uv run ruff check .` - lint (dev extra).
+- `uv run pytest` - run tests when added; place suites under `tests/`.
 
 ## Coding Style & Naming Conventions
-
-- Follow PEP 8 with type hints; order imports stdlib -> third-party; prefer single quotes.
-- Use PascalCase for classes/models and snake_case for functions/variables; exported agents keep the `_agent` suffix and uppercase `INSTRUCTION` constants.
-- Keep system prompts concise and Japanese to match existing behavior; preserve markdown/JSON output templates.
+- Python 3.12, PEP 8, 4-space indents; prefer single quotes as in existing modules. Import order: stdlib, third-party, local.
+- Classes/models PascalCase, functions/vars/fields lower_snake_case; exported agents stay named `root_agent`.
+- Keep Japanese instructions and Markdown templates embedded in agents; avoid rewriting without product agreement.
+- Type hints expected; docstrings only when behavior is non-obvious; keep callbacks/tools small and pure when possible.
 
 ## Testing Guidelines
-
-- Add tests under `tests/` using `test_*.py`; target pytest for new suites.
-- Mock `google_adk` interactions or stub networked tools; validate tool wiring (e.g., required `google_search` calls, timestamp injection) and schema outputs.
+- Use pytest; name files `tests/test_*.py` and functions `test_*`.
+- Mock networked `google_search`/tool calls; unit-test helpers like `append_current_time_instruction` and schema validation for `Todo`/`TodoPlan`.
+- Add regression tests when adjusting prompt templates or time-handling logic; run `uv run pytest` before PRs.
 
 ## Commit & Pull Request Guidelines
+- Use concise, imperative titles similar to history (e.g., `Add game_finder agent`, `Refactor agents and update documentation`); include scope in one line.
+- Squash small WIP commits locally; keep body limited to rationale/notes if needed.
+- PRs should describe purpose, key changes, and manual check steps (agents load, lint/tests run); link issues and attach screenshots or sample agent outputs when applicable.
 
-- Commit history uses short, imperative messages (e.g., "Add game_finder agent and current time instruction tool"); follow suit.
-- PRs should summarize scope, list key commands run, link issues, and include sample agent inputs/outputs or screenshots. Note any env vars or secrets required to reproduce.
+## Security & Configuration Tips
+- Keep API keys and search credentials in per-agent `.env` files; never commit them. `.gitignore` already covers `.env` and `.venv`.
+- When adding tools, avoid logging user prompts or secrets; prefer configuration via environment variables.
