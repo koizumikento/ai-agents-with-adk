@@ -59,13 +59,21 @@ TODO細分化エージェント。Google Searchで最新情報を参照しなが
 
 ## セットアップ
 
-```bash
-# 依存関係のインストール
-uv sync
+開発環境は `.python-version` の Python 3.12.15 を使用します。依存関係を取得する前に、[公式の手順](https://docs.astral.sh/uv/getting-started/installation/)で uv を最新版に更新してください（検証済み: uv 0.13.5）。古い pip / ensurepip を使ったブートストラップは避け、pip を必要としない uv で環境を作成します。
 
-# 開発用依存関係も含める場合
-uv sync --group dev
+```bash
+# 固定した Python とロック済みの依存関係（開発用も含む）で .venv を作成・更新
+uv sync --locked --all-groups --managed-python
+
+# 実際に選択された Python、アプリ用 CA、同梱 pip の版を確認
+uv run --locked python -c "import sys, certifi, ensurepip; print(sys.version); print('certifi:', certifi.__version__); print('ensurepip:', ensurepip.version())"
 ```
+
+Python が固定版と一致しない、certifi が 2026.10.19 未満、または ensurepip が 26.2.2 未満の場合はセットアップを止め、使用する配布物・仮想環境を更新してください。
+
+2026-10-24 に検証した uv 管理の Windows 版 Python 3.12.15 は、pip 26.2.2（内部の certifi は 2026.10.19）を同梱しています。アプリの certifi は `uv.lock` の 2026.10.23 です。別の配布元・OS では同梱内容が異なるため、pip が必要な場合は仮想環境ごとに [Python 公式の CA 更新手順](https://blog.python.org/2026/10/python-3151-3149-31317/)を確認し、pip 26.2.2 以上と内部の certifi 2026.10.19 以上を確認してください。アプリの certifi 更新だけでは、同梱 pip、既存環境、OS の信頼ストアは更新されません。
+
+Python 3.12.15 は[9月のセキュリティリリース](https://www.python.org/downloads/release/python-31215/)です。10月22日に修正された [CVE-2026-114583（tar_filter）](https://github.com/python/cpython/pull/160098)の修正を含むとは扱いません。以後の修正版を確認し、ランタイムとこの固定版を継続して更新してください。
 
 ## 使用方法
 
